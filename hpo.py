@@ -16,9 +16,8 @@ logger.addHandler(logging.StreamHandler(sys.stdout))
 
 def test(model, test_loader, loss_criterion, device='cpu'):
     '''
-    TODO: Complete this function that can take a model and a 
-          testing data loader and will get the test accuray/loss of the model
-          Remember to include any debugging/profiling hooks that you might need
+    This function takes a model and a 
+          testing data loader and will get the test loss of the model
     '''
     model.eval()
     correct = 0
@@ -84,7 +83,8 @@ def _create_train_loader(path, batch_size):
         path,
         train=True,
         transform=transforms.Compose(
-            [transforms.ToTensor()]
+            [transforms.ToTensor(), 
+             transforms.Resize(3,244,244)]
         ),
     )
     return torch.utils.data.DataLoader(
@@ -98,7 +98,8 @@ def _create_test_loader(path, batch_size):
         path,
         train=False,
         transform=transforms.Compose(
-            [transforms.ToTensor()]
+            [transforms.ToTensor(), 
+             transforms.Resize(3,244,244)]
         ),
     )
     return torch.utils.data.DataLoader(
@@ -108,7 +109,7 @@ def _create_test_loader(path, batch_size):
     )
 
 def main(args):
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')`
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     
     '''
     Initialize a model by calling the net function
@@ -128,7 +129,7 @@ def main(args):
     Remember that you will need to set up a way to get training data from S3
     '''
     
-    tran_loader = _create_train_loader(args.data_dir, args.batch_size)
+    train_loader = _create_train_loader(args.data_dir, args.batch_size)
     test_loader = _create_test_loader(args.data_dir, 512)
     
     for epoch in range(1, args.epochs+1):
@@ -138,7 +139,7 @@ def main(args):
     '''
     Save the trained model
     '''
-    torch.save(model.sate_dict(), args.output_path)
+    torch.save(model.state_dict(), args.output_path)
 
 if __name__=='__main__':
         
