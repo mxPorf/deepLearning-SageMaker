@@ -9,6 +9,12 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 
 import argparse
+import logging
+import sys
+import json
+import os
+
+from torchvision.datasets.stanford_cars import StanfordCars
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -69,22 +75,23 @@ def net(num_output_classes):
     '''
     Initializes a pretrained ResNet50 CNN model
     '''
-    model = models.resnet50(pretrained=True)
+    model = models.resnet50(weights='DEFAULT')
     for param in model.parameters():
         param.requires_grad = False
     num_features = model.fc.in_features
     model.fc = nn.Sequential(
-        nn.Linear(num_features, 196))
+        nn.Linear(num_features, num_output_classes))
     return model
     
 
-def _create_train_loader(path, batch_size):
-    dataset = datasets.StanfordCars(
+def _create_train_loader(path, batch_size, download=False):
+    dataset = StanfordCars(
         path,
-        train=True,
+        split='train',
+        download=download,
         transform=transforms.Compose(
             [transforms.ToTensor(), 
-             transforms.Resize(3,244,244)]
+             transforms.Resize([244,244])]
         ),
     )
     return torch.utils.data.DataLoader(
@@ -93,13 +100,14 @@ def _create_train_loader(path, batch_size):
         shuffle=True
     )
     
-def _create_test_loader(path, batch_size):
-    dataset = datasets.StanfordCars(
+def _create_test_loader(path, batch_size, download):
+    dataset = StanfordCars(
         path,
-        train=False,
+        split='test',
+        download=download,
         transform=transforms.Compose(
             [transforms.ToTensor(), 
-             transforms.Resize(3,244,244)]
+             transforms.Resize([244,244])]
         ),
     )
     return torch.utils.data.DataLoader(
@@ -114,7 +122,7 @@ def main(args):
     '''
     Initialize a model by calling the net function
     '''
-    model=net()
+    model=net(args.output_classes)
     model=model.to(device)
     
     
@@ -129,8 +137,8 @@ def main(args):
     Remember that you will need to set up a way to get training data from S3
     '''
     
-    train_loader = _create_train_loader(args.data_dir, args.batch_size)
-    test_loader = _create_test_loader(args.data_dir, 512)
+    train_loader = _create_train_loader(args.data_dir, args.batch_size, args.download)
+    test_loader = _create_test_loader(args.data_dir, 512, args.download)
     
     for epoch in range(1, args.epochs+1):
         model=train(model, train_loader, loss_criterion, optimizer, device=device)
@@ -145,7 +153,7 @@ if __name__=='__main__':
         
     parser = argparse.ArgumentParser(description="ResNet50 image classifier")
     parser.add_argument(
-        "--train-batch-size",
+        "--batch-size",
         type=int,
         default=32,
         help="input batch size for training (default: 32)",
@@ -166,16 +174,28 @@ if __name__=='__main__':
     )
     parser.add_argument(
         "--output-path",
-        default='./saved_model',
-        help="input path to store the trained model (default: ./saved_model)",
+        default='trained_model.pth',
+        help="input path to store the trained model (default: trained_model.pth)",
+    )
+    parser.add_argument(
+        "--output-classes",
+        default=196,
+        help="input number of prossible classes for prediction (default: 196)",
+    )
+    parser.add_argument(
+        "--download",
+        type=int,
+        default=0,
+        metavar="N",
+        help="input whether to download or not download the datasets used for training (default: 0)",
     )
     
     # Container environment
-    parser.add_argument("--hosts", type=list, default=json.loads(os.environ["SM_HOSTS"]))
-    parser.add_argument("--current-host", type=str, default=os.environ["SM_CURRENT_HOST"])
-    parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
-    parser.add_argument("--data-dir", type=str, default=os.environ["SM_CHANNEL_TRAINING"])
-    parser.add_argument("--num-gpus", type=int, default=os.environ["SM_NUM_GPUS"])
+    parser.add_argument("--hosts", type=list, default=json.loads(os.environ.get("SM_HOSTS", '{"SM_HOSTS": ""}')))
+    parser.add_argument("--current-host", type=str, default=os.environ.get("SM_CURRENT_HOST",''))
+    parser.add_argument("--model-dir", type=str, default=os.environ.get("SM_MODEL_DIR","model.pth"))
+    parser.add_argument("--data-dir", type=str, default=os.environ.get("SM_CHANNEL_TRAINING",'./'))
+    parser.add_argument("--num-gpus", type=int, default=os.environ.get("SM_NUM_GPUS",0))
     
     
     args=parser.parse_args()
