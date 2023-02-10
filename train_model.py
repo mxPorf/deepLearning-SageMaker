@@ -9,6 +9,8 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 
 import argparse
+import json
+import os
 
 #Import Sagemaker debug tool
 import smdebug.pytorch as smd
