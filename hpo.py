@@ -141,7 +141,7 @@ def main(args):
     test_loader = _create_test_loader(args.data_dir, 512, args.download)
     
     for epoch in range(1, args.epochs+1):
-        model=train(model, train_loader, loss_criterion, optimizer, device=device)
+        train(model, train_loader, loss_criterion, optimizer, device=device)
         test(model, test_loader, loss_criterion, device=device)
     
     '''
@@ -185,9 +185,9 @@ if __name__=='__main__':
     parser.add_argument(
         "--download",
         type=int,
-        default=0,
+        default=1,
         metavar="N",
-        help="input whether to download or not download the datasets used for training (default: 0)",
+        help="input whether to download or not download the datasets used for training (default: 1)",
     )
     
     # Container environment

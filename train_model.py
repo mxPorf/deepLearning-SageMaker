@@ -138,16 +138,17 @@ def main(args):
     '''
     Train the model
     '''
-    # hook = smd.Hook(out_dir=args.out_dir)
+    hook = smd.Hook.create_from_json_file()
     # hook.register_module(model)
-    # hook.register_loss(loss_criterion)
-    hook=None
+    hook.register_hook(model)
+    hook.register_loss(loss_criterion)
+    
      
     train_loader = _create_train_loader(args.data_dir, args.batch_size, args.download)
     test_loader = _create_test_loader(args.data_dir, 512, args.download)
     
     for epoch in range(1, args.epochs+1):
-        model=train(model, train_loader, loss_criterion, optimizer, epoch, hook, device)
+        train(model, train_loader, loss_criterion, optimizer, epoch, hook, device)
         test(model, test_loader, loss_criterion, hook, device)
     '''
     Save the trained model
@@ -186,9 +187,9 @@ if __name__=='__main__':
     parser.add_argument(
         "--download",
         type=int,
-        default=0,
+        default=1,
         metavar="N",
-        help="input whether to download or not download the datasets used for training (default: 0)",
+        help="input whether to download or not download the datasets used for training (default: 1)",
     )
     parser.add_argument(
         "--out-dir",
