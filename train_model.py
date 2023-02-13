@@ -153,7 +153,8 @@ def main(args):
     '''
     Save the trained model
     '''
-    torch.save(model.state_dict(), args.model_dir)
+    full_path=os.path.join(args.model_dir, "model.pth")
+    torch.save(model.state_dict(), full_path)
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description="ResNet50 image classifier, with sagemaker profiler and debugger")
