@@ -16,8 +16,11 @@ from torchvision.datasets.stanford_cars import StanfordCars
 
 
 #Import Sagemaker debug tool
-import smdebug.pytorch as smd
-
+try:
+    import smdebug.pytorch as smd
+except Exception as e:
+    print(e)
+    
 
 def test(model, test_loader, loss_criterion, hook, device):
     '''
@@ -120,6 +123,12 @@ def _create_test_loader(path, batch_size, download):
         shuffle=True
     )
 
+def model_fn(model_dir):
+    model = net(196)
+    with open(os.path.join(model_dir, "model.pth"), "rb") as f:
+        model.load_state_dict(torch.load(f))
+    return model
+
 def main(args):
     #Use gpu, if available
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -138,11 +147,13 @@ def main(args):
     '''
     Train the model
     '''
-    hook = smd.Hook.create_from_json_file()
-    # hook.register_module(model)
-    hook.register_hook(model)
-    hook.register_loss(loss_criterion)
-    
+    try:
+        hook = smd.Hook.create_from_json_file()
+        # hook.register_module(model)
+        hook.register_hook(model)
+        hook.register_loss(loss_criterion)
+    except Exception:
+        hook = None
      
     train_loader = _create_train_loader(args.data_dir, args.batch_size, args.download)
     test_loader = _create_test_loader(args.data_dir, 512, args.download)
@@ -154,7 +165,7 @@ def main(args):
     Save the trained model
     '''
     full_path=os.path.join(args.model_dir, "model.pth")
-    torch.save(model.state_dict(), full_path)
+    torch.save(model.to('cpu').state_dict(), full_path)
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description="ResNet50 image classifier, with sagemaker profiler and debugger")
