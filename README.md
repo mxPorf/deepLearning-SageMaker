@@ -3,16 +3,18 @@
 Use AWS Sagemaker to train a pretrained model that can perform image classification by using the Sagemaker profiling, debugger, hyperparameter tuning and other good ML engineering practices. This can be done on either the provided dog breed classication data set or one of your choice.
 
 ## Project Set Up and Installation
+This project is built to be used with AWS Sagemaker.
 Enter AWS through the gateway in the course and open SageMaker Studio. 
-Download the starter files.
-Download/Make the dataset available. 
+Clone or download the starter files.
+The Jupyter Notebook `train_and_deplot.ipynb` contains the steps needed to comoplete a fetch, train, deploy workflow
+`hpo.py` contains the code needed to execute hyperparameter tuning with Sagemaker.
+`train_model.py` is the script needed to train the model, includes the Sagemaker Debugger and Profiler to derive insights from the trainig job.
 
 ## Dataset
-The provided dataset is the dogbreed classification dataset which can be found in the classroom.
-The project is designed to be dataset independent so if there is a dataset that is more interesting or relevant to your work, you are welcome to use it to complete the project.
+The provided dataset is the Stanford Cars dataset, the documentation can be seen at the [Stanford University website](https://ai.stanford.edu/~jkrause/cars/car_dataset.html)
 
 ### Access
-Upload the data to an S3 bucket through the AWS Gateway so that SageMaker has access to the data. 
+The Jupyter Notebok uploads the dataset to an S3 bucket so that SageMaker has access to the data. 
 
 ## Hyperparameter Tuning
 The chosen model was ResNet50, which is a type of CNN architecture capable of classifying images, as requested by the project directions.
