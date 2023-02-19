@@ -78,7 +78,7 @@ the batch size will always be 1, since the prediction runs on a single image, th
 3. serialize the image
 4. attaach it to the body of an http call, send it to the endpoint URL
 
-
+![active_endpoint](https://github.com/mxPorf/deepLearning-SageMaker/blob/46bb804c01fd96cef52709422b2fe8bdeb5aaf1f/images/active_endpoint.png?raw=true)
 
 
 **TODO**: Give an overview of the deployed model and instructions on how to query the endpoint with a sample input.
